@@ -28,7 +28,7 @@ class MainActivity : BaseActivity() {
     lateinit var viewModel: MainViewModel
     private var adapter: RestaurantAdapter? = null
     private val restaurants = mutableListOf<Restaurant>()
-    private var permissionHelper = PermissionHelper(this)
+    private var permissionHelper = PermissionHelper(this, true)
     private val appPreferences: AppPreferences by inject()
 
     private val searchRequestCode = 1002
@@ -85,12 +85,16 @@ class MainActivity : BaseActivity() {
     }
 
     private fun initPermission() {
-        if (isOnline(this)) {
+        /*if (isOnline(this)) {
             permissionHelper.onPermissionGranted = { doOnPermissionAccepted() }
         } else {
             showOfflineSnackbar(rootView(this))
         }
+        permissionHelper.performPermissionCheck(this)*/
+
+        permissionHelper.onPermissionGranted = { doOnPermissionAccepted() }
         permissionHelper.performPermissionCheck(this)
+
 
     }
 
@@ -202,7 +206,11 @@ class MainActivity : BaseActivity() {
     fun searchAutomatically() {
         if (permissionHelper.checkPermissionGranted(this)) {
             if (isOnline(this)) {
-                getNearby()
+                if (permissionHelper.statusCheck(this)) {
+                    getNearby()
+                } else {
+                    permissionHelper.buildAlertMessageNoGps(this)
+                }
             } else {
                 showOfflineSnackbar(rootView(this))
             }
